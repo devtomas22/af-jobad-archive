@@ -28,19 +28,24 @@ import gzip
 import hashlib
 import json
 import os
-import shutil
+import subprocess
 import sys
 import threading
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import zlib
 
 VERSION = "1.0.0"
 
 HIST_SEARCH = "https://historical.api.jobtechdev.se/search"
 ENRICH_URL = "https://jobad-enrichments-api.jobtechdev.se/enrichtextdocuments"
 USER_AGENT = f"af-jobad-archive/{VERSION} (+https://github.com/devtomas22/af-jobad-archive)"
+
+# Optional SOCKS5 egress (the JobTech API is flaky from some hosts). Set
+# AF_PROXY/EDH_PROXY (e.g. socks5h://user:pass@host:port) or pass --proxy.
+PROXY = os.environ.get("AF_PROXY") or os.environ.get("EDH_PROXY") or ""
 
 # Hard API limits (verified live 2026-11-22):
 #   limit <= 100, offset <= 2000  =>  max 2100 ads reachable per query window
@@ -107,28 +112,47 @@ def default_quarters(end: dt.datetime, count: int = 4) -> list[str]:
 # HTTP
 # --------------------------------------------------------------------------
 
+def _raw_get(url: str, data: bytes | None, timeout: int) -> tuple[int, bytes]:
+    """One HTTP GET/POST. Uses curl when a SOCKS5 proxy is configured."""
+    if PROXY:
+        cmd = ["curl", "-sS", "--proxy", PROXY, "--max-time", str(int(timeout)),
+               "-A", USER_AGENT, "-H", "Accept: application/json",
+               "-w", "\n%{http_code}", url]
+        if data is not None:
+            cmd[-1:-1] = ["-H", "Content-Type: application/json", "--data-binary", "@-"]
+        r = subprocess.run(cmd, input=data, capture_output=True, timeout=timeout + 15)
+        if r.returncode != 0:
+            raise OSError(r.stderr.decode()[:200] or f"curl exit {r.returncode}")
+        body, _, code = r.stdout.rpartition(b"\n")
+        return int(code or 0), body
+    req = urllib.request.Request(url, data=data, headers={
+        "User-Agent": USER_AGENT, "Accept": "application/json",
+        **({"Content-Type": "application/json"} if data is not None else {})})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.status, resp.read()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read() or b""
+
+
 def http_json(url: str, params: dict | None = None, body: dict | None = None,
-              retries: int = 6, timeout: int = 120) -> dict:
+              retries: int = 5, timeout: int = 25) -> dict:
     if params:
         url = url + "?" + urllib.parse.urlencode(params)
     data = json.dumps(body).encode() if body is not None else None
-    headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
-    if data is not None:
-        headers["Content-Type"] = "application/json"
     last = None
     for attempt in range(retries):
+        code, raw = 0, b""
         try:
-            req = urllib.request.Request(url, data=data, headers=headers)
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                return json.loads(r.read())
-        except urllib.error.HTTPError as e:
+            code, raw = _raw_get(url, data, timeout)
+            if 200 <= code < 300:
+                return json.loads(raw)
+            if code in (400, 404, 422):
+                raise SystemExit(f"HTTP {code} for {url}: {raw[:200]!r}")
+            last = f"HTTP {code}"
+        except (OSError, TimeoutError, json.JSONDecodeError, subprocess.TimeoutExpired) as e:
             last = e
-            if e.code in (400, 404, 422):  # not retryable
-                raise
-            time.sleep(min(30, 2 ** attempt) + 0.2 * attempt)
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
-            last = e
-            time.sleep(min(30, 2 ** attempt) + 0.2 * attempt)
+        time.sleep(min(8, 0.5 * 2 ** attempt))
     raise SystemExit(f"giving up on {url}: {last}")
 
 
@@ -139,29 +163,30 @@ def window_total(start: dt.datetime, end: dt.datetime) -> int:
     return int(d["total"]["value"])
 
 
-def _split(start: dt.datetime, end: dt.datetime, total: int, depth: int = 0):
-    """Yield API-safe (start, end) windows: each reachable in <= 2100 ads."""
-    if total <= MAX_WINDOW_ADS or depth > 12:
-        yield start, end
-        return
-    mid = start + (end - start) / 2
-    mid = mid.replace(microsecond=0)
-    if mid <= start or mid >= end:
-        yield start, end  # cannot split further; caller will page what it can
-        return
-    for a, b in ((start, mid), (mid, end)):
-        yield from _split(a, b, window_total(a, b), depth + 1)
-
-
-def iter_windows(start: dt.datetime, end: dt.datetime):
-    """Adaptive 6-hour windows over [start, end)."""
+def build_windows(start: dt.datetime, end: dt.datetime, workers: int = 16):
+    """All API-safe windows over [start, end); totals fetched in parallel."""
     step = dt.timedelta(hours=6)
+    slices = []
     cur = start
     while cur < end:
         nxt = min(cur + step, end)
-        total = window_total(cur, nxt)
-        yield from _split(cur, nxt, total)
+        slices.append((cur, nxt))
         cur = nxt
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as ex:
+        totals = list(ex.map(lambda w: window_total(*w), slices))
+    out, stack = [], list(zip(slices, totals))
+    while stack:
+        (a, b), total = stack.pop()
+        if total <= MAX_WINDOW_ADS or (b - a) <= dt.timedelta(minutes=15):
+            out.append((a, b))
+            continue
+        mid = (a + (b - a) / 2).replace(microsecond=0)
+        if mid <= a or mid >= b:
+            out.append((a, b))
+            continue
+        stack.append(((mid, b), window_total(mid, b)))
+        stack.append(((a, mid), window_total(a, mid)))
+    return sorted(out)
 
 
 def fetch_window(start: dt.datetime, end: dt.datetime) -> list[dict]:
@@ -273,7 +298,7 @@ def cmd_download(args) -> None:
             continue
         state = load_state(q)
         todo = []
-        for wa, wb in iter_windows(a, b):
+        for wa, wb in build_windows(a, b, workers):
             key = f"{iso(wa)}|{iso(wb)}"
             if key not in state["windows"]:
                 todo.append((key, wa, wb))
@@ -316,16 +341,24 @@ def cmd_pack(args) -> None:
         if not os.path.exists(raw):
             log(f"{q}: no raw data, skipped")
             continue
+        # The historical API treats published-before as inclusive at second
+        # granularity, so the ad published exactly at midnight of the next
+        # quarter lands in two raw files. Assign rows by publication_date.
+        q_start, q_end = quarter_bounds(q)
+        lo = max(q_start, cutoff)
         ads: dict[str, dict] = {}
-        dropped_old = 0
+        dropped_old = dropped_next = 0
         for ad in read_jsonl(raw):
             pub = str(ad.get("publication_date") or "")
             try:
                 when = parse_date(pub)
             except SystemExit:
                 when = None
-            if when is not None and when < cutoff:
+            if when is not None and when < lo:
                 dropped_old += 1
+                continue
+            if when is not None and when >= q_end:
+                dropped_next += 1
                 continue
             key = str(ad.get("id") or ad.get("original_id"))
             prev = ads.get(key)
@@ -344,6 +377,7 @@ def cmd_pack(args) -> None:
             "generated": dt.datetime.now().replace(microsecond=0).isoformat(),
             "ads": len(ordered),
             "dropped_older_than_window": dropped_old,
+            "dropped_after_quarter_end": dropped_next,
             "publication_date_from": min(dates) if dates else None,
             "publication_date_to": max(dates) if dates else None,
             "bytes_gz": os.path.getsize(out),
@@ -355,6 +389,101 @@ def cmd_pack(args) -> None:
             f"({manifest['bytes_gz'] / 1e6:.1f} MB)")
 
 
+def read_jsonl_lenient(path: str):
+    """Yield records from a gzip JSONL that may end in a truncated member.
+
+    A run killed mid-write leaves the last gzip member cut off, which makes the
+    stock gzip reader raise EOFError and hides every record before it. Decompress
+    member by member and stop at the first damaged byte instead.
+    """
+    d = zlib.decompressobj(16 + zlib.MAX_WBITS)
+    buf = b""
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(1 << 20)
+            if not chunk:
+                break
+            while chunk:
+                try:
+                    out = d.decompress(chunk)
+                except zlib.error:
+                    return
+                if out:
+                    buf += out
+                    while b"\n" in buf:
+                        line, buf = buf.split(b"\n", 1)
+                        line = line.strip()
+                        if line:
+                            try:
+                                yield json.loads(line)
+                            except json.JSONDecodeError:
+                                pass
+                if d.eof:
+                    chunk, d = d.unused_data, zlib.decompressobj(16 + zlib.MAX_WBITS)
+                else:
+                    chunk = b""
+
+
+def repair_jsonl(path: str) -> int:
+    """Rewrite a truncated gzip JSONL in place, keeping every complete record."""
+    staged, n = path + ".repair", 0
+    with gzip.open(staged, "wt", encoding="utf-8", compresslevel=9) as dst:
+        for item in read_jsonl_lenient(path):
+            dst.write(json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n")
+            n += 1
+    os.replace(staged, path)
+    return n
+
+
+def finalize_jsonl(out: str, allowed: set[str] | None = None,
+                   expected: int = 0) -> int:
+    """Union `out` and its `.tmp` appendix into a clean, deduped `out`.
+
+    Every enrich run appends to a tmp file (one gzip member per response batch),
+    so a resumed run holds a mix of new docs and the previous finished file's
+    docs. Reading both and writing a fresh `out` keeps that lossless and makes
+    the function idempotent. Records whose doc_id is no longer in the packed
+    quarter (an ad moved across the quarter boundary by a re-pack) are dropped
+    when `allowed` is given.
+    """
+    tmp = out + ".tmp"
+    staged, seen, n = out + ".staged", set(), 0
+    with gzip.open(staged, "wt", encoding="utf-8", compresslevel=9) as dst:
+        for path in (out, tmp):
+            if not os.path.exists(path):
+                continue
+            for item in read_jsonl(path):
+                key = str(item.get("doc_id") or "")
+                if allowed is not None and key not in allowed:
+                    continue
+                if key and key in seen:
+                    continue
+                if key:
+                    seen.add(key)
+                dst.write(json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n")
+                n += 1
+    if n == 0 and expected:
+        os.remove(staged)
+        raise SystemExit(f"refusing to write an empty {os.path.basename(out)} "
+                         f"(expected ~{expected} docs)")
+    os.replace(staged, out)
+    if os.path.exists(tmp):
+        os.remove(tmp)
+    return n
+
+
+def finish_enrichment(q: str, out: str, n_out: int) -> None:
+    """Record the enrichment file in the quarter's manifest."""
+    man = paths_for(q)["manifest"]
+    if not os.path.exists(man):
+        return
+    with open(man, encoding="utf-8") as f:
+        m = json.load(f)
+    m["enrichment"] = {"docs": n_out, "bytes_gz": os.path.getsize(out), "sha256": sha256(out)}
+    with open(man, "w", encoding="utf-8") as f:
+        json.dump(m, f, indent=1, ensure_ascii=False)
+
+
 def cmd_enrich(args) -> None:
     quarters = args.quarters or default_quarters(parse_date(args.end))
     workers = max(1, args.workers)
@@ -364,19 +493,27 @@ def cmd_enrich(args) -> None:
             log(f"{q}: nothing packed, skipped")
             continue
         out = paths_for(q)["enriched"]
-        done_ids: set[str] = set()
-        if os.path.exists(out) and not args.force:
-            for item in read_jsonl(out):
-                if item.get("doc_id"):
-                    done_ids.add(str(item["doc_id"]))
         tmp = out + ".tmp"
-        if os.path.exists(out) and not args.force:
-            shutil.copyfile(out, tmp)
+        if args.force:
+            for p in (out, tmp):
+                if os.path.exists(p):
+                    os.remove(p)
+        if os.path.exists(tmp):
+            kept = repair_jsonl(tmp)
+            log(f"{q}: repaired partial enrichment file ({kept} docs kept)")
         else:
             open(tmp, "wb").close()
+        # A previous finished sidecar plus a tmp from an interrupted run both
+        # count as done; finalize_jsonl unions them without double counting.
+        done_ids: set[str] = set()
+        for path in (out, tmp):
+            if os.path.exists(path):
+                done_ids |= {str(i["doc_id"]) for i in read_jsonl(path) if i.get("doc_id")}
 
         batches, batch = [], []
+        packed_ids: set[str] = set()
         for ad in read_jsonl(packed):
+            packed_ids.add(str(ad.get("id")))
             if str(ad.get("id")) in done_ids:
                 continue
             d = ad.get("description") or {}
@@ -394,7 +531,8 @@ def cmd_enrich(args) -> None:
         log(f"{q}: {len(batches)} enrichment batches ({len(done_ids)} docs already done)")
         if not batches:
             if os.path.exists(tmp):
-                os.replace(tmp, out)
+                n_out = finalize_jsonl(out, packed_ids)
+                finish_enrichment(q, out, n_out)
             continue
 
         lock = threading.Lock()
@@ -403,7 +541,7 @@ def cmd_enrich(args) -> None:
 
         def work(docs):
             body = {"include_terms_info": True, "include_sentences": False, "documents_input": docs}
-            res = http_json(ENRICH_URL, body=body, timeout=300)
+            res = http_json(ENRICH_URL, body=body, timeout=120)
             items = res if isinstance(res, list) else res.get("result", [])
             with lock:
                 for item in items:
@@ -415,15 +553,8 @@ def cmd_enrich(args) -> None:
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as ex:
             list(ex.map(work, batches))
         fh.close()
-        os.replace(tmp, out)
-        n_out = sum(1 for _ in read_jsonl(out))
-        man = paths_for(q)["manifest"]
-        if os.path.exists(man):
-            with open(man, encoding="utf-8") as f:
-                m = json.load(f)
-            m["enrichment"] = {"docs": n_out, "bytes_gz": os.path.getsize(out), "sha256": sha256(out)}
-            with open(man, "w", encoding="utf-8") as f:
-                json.dump(m, f, indent=1, ensure_ascii=False)
+        n_out = finalize_jsonl(out, packed_ids, expected=len(done_ids))
+        finish_enrichment(q, out, n_out)
         log(f"{q}: enriched {n_out} docs in {time.time() - t0:.0f}s -> {os.path.relpath(out, ROOT)} "
             f"({os.path.getsize(out) / 1e6:.1f} MB)")
 
@@ -480,6 +611,19 @@ def cmd_verify(args) -> None:
         size_ok = os.path.getsize(p) == m["bytes_gz"]
         log(f"{q}: {m['ads']} ads, sha256 {'OK' if got == m['sha256'] else 'MISMATCH'}, size {'OK' if size_ok else 'MISMATCH'}")
         ok = ok and got == m["sha256"] and size_ok
+        e = m.get("enrichment")
+        if e:
+            ep = paths_for(q)["enriched"]
+            if not os.path.exists(ep):
+                log(f"{q}: missing {ep}")
+                ok = False
+                continue
+            e_sha = sha256(ep) == e["sha256"]
+            e_size = os.path.getsize(ep) == e["bytes_gz"]
+            n_docs = sum(1 for _ in read_jsonl(ep))
+            log(f"{q}: enrichment {n_docs} docs (manifest {e['docs']}), "
+                f"sha256 {'OK' if e_sha else 'MISMATCH'}, size {'OK' if e_size else 'MISMATCH'}")
+            ok = ok and e_sha and e_size and n_docs == e["docs"]
     sys.exit(0 if ok else 1)
 
 
@@ -594,7 +738,8 @@ def main(argv=None) -> int:
     sp.set_defaults(func=cmd_plan)
 
     sp = common(sub.add_parser("download", help="fetch ads into data/raw"))
-    sp.add_argument("--workers", type=int, default=6)
+    sp.add_argument("--workers", type=int, default=16)
+    sp.add_argument("--proxy", help="SOCKS5 egress, e.g. socks5h://user:pass@host:port")
     sp.set_defaults(func=cmd_download)
 
     sp = common(sub.add_parser("pack", help="dedupe, sort and gzip into dist/"))
@@ -602,7 +747,7 @@ def main(argv=None) -> int:
 
     sp = common(sub.add_parser("enrich", help="run JobAd Enrichments over packed ads"))
     sp.add_argument("--force", action="store_true")
-    sp.add_argument("--workers", type=int, default=6)
+    sp.add_argument("--workers", type=int, default=16)
     sp.set_defaults(func=cmd_enrich)
 
     sp = common(sub.add_parser("prune", help="delete quarters outside the window"))
@@ -622,6 +767,9 @@ def main(argv=None) -> int:
     sp.set_defaults(func=cmd_release, end=dt.date.today().isoformat(), quarters=None, all=False)
 
     args = p.parse_args(argv)
+    global PROXY
+    if getattr(args, "proxy", None):
+        PROXY = args.proxy
     if args.quarters is None:
         args.quarters = default_quarters(parse_date(args.end)) if args.cmd != "release" else None
     args.func(args)

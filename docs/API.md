@@ -31,8 +31,17 @@ Ad fields (`hits[]`): `id`, `external_id`, `original_id`, `headline`,
 `removed_date`, `source_type`, `timestamp`, `application_details`,
 `application_contacts`, `label`.
 
-Mean serialized size (compact JSON): **5,114 B/ad**; median 5,137 B;
-p90 ≈ 5,900 B; min ≈ 3,300 B; max ≈ 9,000 B.
+Mean serialized size (compact JSON): **5,114 B/ad** in a 200-ad sample;
+**5,832 B/ad** over the 522,663-ad release set (the sample runs small — trust the
+packed figure for planning). Median 5,137 B; p90 ≈ 5,900 B; min ≈ 3,300 B;
+max ≈ 9,000 B.
+
+Window bounds: `published-after` inclusive, `published-before` **inclusive at
+second granularity**. An ad whose `publication_date` is exactly
+`2026-01-01T00:00:00` is returned by both the Q4 window
+(`…-before=2026-01-01T00:00:00`) and the Q1 window
+(`published-after=2026-01-01T00:00:00`). Adjacent windows therefore overlap by
+one second; dedupe or assign by `publication_date`.
 
 Errors come back with HTTP 400 and a JSON body
 `{"trackingId": "...", "cause": {"code": "400", "message": "..."}}` — the
@@ -68,7 +77,10 @@ descriptive `User-Agent`.
 
 ## Politeness
 
-* 6–8 concurrent connections are enough to fetch ~500k ads in well under an
-  hour; do not exceed ~10.
+* 16 concurrent connections sustained ~8 windows/s (522k ads downloaded in
+  under an hour per full run) and giving every quarter its own 5–20 min slot;
+  the earlier "keep it at 6–8" advice was over-cautious.
 * Exponential backoff on 5xx/timeouts; 400/404/422 are not retried.
 * Each 100-ad page is ~500–600 kB.
+* JobAd Enrichments accepts 100 documents per request and sustains ~250
+  docs/s with 16 workers.
