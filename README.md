@@ -53,6 +53,7 @@ python3 af_jobs_archive.py prune --all          # drop > 12 months old
 python3 af_jobs_archive.py verify --all         # checksums vs manifests
 python3 tools/verify_pack.py 2025Q4 2026Q1     # content checks (ids, order, join)
 python3 tools/stats.py                          # -> stats.json (counts, breakdowns)
+python3 tools/classify.py build                  # -> index/classify.sqlite (reverse lookup)
 python3 af_jobs_archive.py release --quarter 2026Q1
 ```
 
@@ -60,6 +61,19 @@ python3 af_jobs_archive.py release --quarter 2026Q1
 `dist/`: totals, per quarter (ads, positions, bytes, sha256), by month, by
 source type, by occupation field, by region/country, top occupation groups and
 top employers. Regenerate it after any re-cut.
+
+`tools/classify.py` builds a SQLite reverse index (label → ads, ad → labels)
+over 21 classification categories — taxonomy, employment terms, geography,
+source, must_have/nice_to_have requirements — plus enrichment concept rollups:
+
+```bash
+python3 tools/classify.py categories
+python3 tools/classify.py values --category occupation_group --top 20
+python3 tools/classify.py ads    --category occupation_field --label "Data/IT" --quarter 2026Q4
+python3 tools/classify.py explain --id <ad id>
+```
+
+Details, schema and caveats: [`docs/CLASSIFY.md`](docs/CLASSIFY.md).
 
 `--all` is the four most recent **complete** quarters. The current partial
 quarter is not included in `--all`; add it by name to get a data set that really
