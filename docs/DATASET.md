@@ -46,6 +46,26 @@ are complete calendar quarters. 2025Q4 is clipped to the window start, 2025-11-2
 Each quarter's `dist/manifest-<q>.json` carries the same numbers plus
 `dropped_older_than_window` and `dropped_after_quarter_end`.
 
+## Published
+
+All five are live as GitHub releases (tag = quarter, assets = ads + sidecar +
+manifest); each asset's `sha256` digest on GitHub was checked against the local
+manifest after upload:
+
+* https://github.com/devtomas22/af-jobad-archive/releases/tag/2025Q4
+* https://github.com/devtomas22/af-jobad-archive/releases/tag/2026Q1
+* https://github.com/devtomas22/af-jobad-archive/releases/tag/2026Q2
+* https://github.com/devtomas22/af-jobad-archive/releases/tag/2026Q3
+* https://github.com/devtomas22/af-jobad-archive/releases/tag/2026Q4
+
+```bash
+export GITHUB_TOKEN=$(gh auth token)
+python3 af_jobs_archive.py release --quarter 2026Q4
+```
+
+Releasing a quarter that already exists is not idempotent: GitHub rejects a
+second asset with the same name (422), so delete the release first when re-cutting.
+
 ## Verification (run 2026-11-22, both gates green)
 
 `python3 af_jobs_archive.py verify --quarters 2025Q4 2026Q1 2026Q2 2026Q3 2026Q4`
