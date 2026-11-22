@@ -1,0 +1,380 @@
+{
+ "generated": "2026-11-22T23:21:02",
+ "dataset": "af-jobad-archive",
+ "license": "Ads © Arbetsförmedlingen via JobTech Development (CC0); code MIT",
+ "window": {
+  "start": "2025-11-22T00:00:00",
+  "end": "2026-11-19T18:38:14"
+ },
+ "totals": {
+  "ads": 522663,
+  "positions": 928515,
+  "quarters": 5,
+  "raw_json_bytes": 3048169994,
+  "ads_gz_bytes": 702732300,
+  "enrichment_gz_bytes": 296080154,
+  "gzip_bytes_total": 998812454,
+  "mean_raw_bytes_per_ad": 5832.0,
+  "employer_names": 31717,
+  "employer_org_numbers": 26107,
+  "ads_with_application_deadline": 522663,
+  "ads_experience_required": 465265,
+  "ads_full_time": 392423
+ },
+ "by_quarter": [
+  {
+   "quarter": "2025Q4",
+   "ads": 54435,
+   "publication_date_from": "2025-11-22T00:00:00",
+   "publication_date_to": "2025-12-31T23:24:35",
+   "vacancies": 120315,
+   "raw_json_bytes": 324818078,
+   "ads_gz_bytes": 75413884,
+   "ads_sha256": "cc3b60f017b2784fcbc1a374f032bcffdfc662bded50922c775cd529e2f075e4",
+   "enrichment_docs": 54435,
+   "enrichment_gz_bytes": 32052458,
+   "enrichment_sha256": "f6bf84feb83a6a4da43c8cfe10d601261f0d2c01ef98f584a7690af1cbdd44ae"
+  },
+  {
+   "quarter": "2026Q1",
+   "ads": 152404,
+   "publication_date_from": "2026-01-01T00:00:00",
+   "publication_date_to": "2026-03-31T23:31:20",
+   "vacancies": 311429,
+   "raw_json_bytes": 876669367,
+   "ads_gz_bytes": 203570871,
+   "ads_sha256": "ed315b5fad3de29a7938d2fd65a7003a187c8e1bfd8fd31fe321ede7d5605251",
+   "enrichment_docs": 152404,
+   "enrichment_gz_bytes": 84485912,
+   "enrichment_sha256": "4e381faf63fc47ba87bcdf186b871c9834b90ed969b77f949857549a2a7cb29c"
+  },
+  {
+   "quarter": "2026Q2",
+   "ads": 149565,
+   "publication_date_from": "2026-04-01T00:00:00",
+   "publication_date_to": "2026-06-30T23:53:20",
+   "vacancies": 233685,
+   "raw_json_bytes": 863074235,
+   "ads_gz_bytes": 198154020,
+   "ads_sha256": "51be1864b30f44e8e8db76145ead0dc18f2ebadd9f9059eb365d7223fead175f",
+   "enrichment_docs": 149565,
+   "enrichment_gz_bytes": 83387191,
+   "enrichment_sha256": "ffa599d19c999d9656c8b7db5ee82851fecb9a4140e072853c9e8e072ab4e8ab"
+  },
+  {
+   "quarter": "2026Q3",
+   "ads": 121594,
+   "publication_date_from": "2026-07-01T00:00:00",
+   "publication_date_to": "2026-09-30T23:37:12",
+   "vacancies": 196025,
+   "raw_json_bytes": 715582898,
+   "ads_gz_bytes": 164467416,
+   "ads_sha256": "546453e1ad747f0f285ec3f6b423191314ba5e410c6fbdeebe3c140742ba2770",
+   "enrichment_docs": 121594,
+   "enrichment_gz_bytes": 69775546,
+   "enrichment_sha256": "ffece0d9858ffd6b049b48c6c1db9938b9a07e8bdcea0d21760ae786ed700af9"
+  },
+  {
+   "quarter": "2026Q4",
+   "ads": 44665,
+   "publication_date_from": "2026-10-01T00:00:00",
+   "publication_date_to": "2026-11-19T18:38:14",
+   "vacancies": 67061,
+   "raw_json_bytes": 268025416,
+   "ads_gz_bytes": 61126109,
+   "ads_sha256": "e6f6312066f870a4bc9aaa132c885c2d1d73c5abe2b1603e6a2cc4596521d6a7",
+   "enrichment_docs": 44665,
+   "enrichment_gz_bytes": 26379047,
+   "enrichment_sha256": "231e44b981fab41366ae952b28cc875fbecc5ffbf289c6676891555e99269179"
+  }
+ ],
+ "by_month": {
+  "2025-11": 10089,
+  "2025-12": 44346,
+  "2026-01": 49378,
+  "2026-02": 54080,
+  "2026-03": 48946,
+  "2026-04": 55194,
+  "2026-05": 46941,
+  "2026-06": 47430,
+  "2026-07": 31023,
+  "2026-08": 44619,
+  "2026-09": 45952,
+  "2026-10": 38750,
+  "2026-11": 5915
+ },
+ "by_source_type": {
+  "VIA_JOBPOSTING": 261720,
+  "VIA_ANNONSERA": 144329,
+  "VIA_PLATSBANKEN_DXA": 115464,
+  "VIA_AIS": 1150
+ },
+ "by_occupation_field": {
+  "Hälso- och sjukvård": 81028,
+  "Administration, ekonomi, juridik": 56072,
+  "Försäljning, inköp, marknadsföring": 54734,
+  "Pedagogik": 47565,
+  "Yrken med social inriktning": 44507,
+  "Data/IT": 30389,
+  "Transport, distribution, lager": 27214,
+  "Yrken med teknisk inriktning": 26180,
+  "Chefer och verksamhetsledare": 25601,
+  "Hotell, restaurang, storhushåll": 23654,
+  "Industriell tillverkning": 23181,
+  "Installation, drift, underhåll": 21462,
+  "Bygg och anläggning": 20866,
+  "Sanering och renhållning": 16342,
+  "Säkerhet och bevakning": 6074,
+  "Naturvetenskap": 4590,
+  "Kultur, media, design": 4554,
+  "Naturbruk": 3802,
+  "Kropps- och skönhetsvård": 2074,
+  "Hantverk": 1669,
+  "Militära yrken": 1100,
+  "Socialt arbete": 4,
+  "Pedagogiskt arbete": 1
+ },
+ "by_region": {
+  "Stockholms län": 128472,
+  "Västra Götalands län": 81811,
+  "Skåne län": 58631,
+  "Östergötlands län": 28044,
+  "Jönköpings län": 20862,
+  "Norrbottens län": 19514,
+  "Uppsala län": 19452,
+  "Västerbottens län": 14324,
+  "Örebro län": 14104,
+  "Dalarnas län": 13591,
+  "Hallands län": 13559,
+  "Västmanlands län": 12904,
+  "Västernorrlands län": 12780,
+  "Södermanlands län": 12706,
+  "Värmlands län": 11118,
+  "Gävleborgs län": 11104,
+  "unknown": 11101,
+  "Kronobergs län": 10854,
+  "Kalmar län": 10016,
+  "Jämtlands län": 7499,
+  "Blekinge län": 6838,
+  "Gotlands län": 3379
+ },
+ "by_country": {
+  "Sverige": 520167,
+  "Norge": 718,
+  "Spanien": 604,
+  "Schweiz": 166,
+  "Danmark": 153,
+  "Grekland": 145,
+  "Malta": 142,
+  "Cypern": 123,
+  "Storbritannien och Nordirland": 86,
+  "Frankrike": 56,
+  "Irland": 48,
+  "Tyskland": 33,
+  "Bulgarien": 23,
+  "Finland": 19,
+  "Förenade arabemiraten": 14,
+  "Polen": 13,
+  "Portugal": 13,
+  "Belgien": 13,
+  "Thailand": 11,
+  "Andorra": 11,
+  "Amerikas Förenta stater/USA": 8,
+  "Italien": 8,
+  "Lettland": 8,
+  "Island": 8,
+  "Österrike": 6,
+  "Nederländerna": 6,
+  "Åland": 6,
+  "Förenta staterna (Amerikas förenta stater)": 6,
+  "Kroatien": 5,
+  "Julön": 5,
+  "Åland (tillhör Finland)": 4,
+  "Filippinerna": 4,
+  "Luxemburg": 3,
+  "Malaysia": 3,
+  "Saudiarabien": 3,
+  "Vanuatu": 2,
+  "Jordanien": 2,
+  "Armenien": 2,
+  "Indien": 2,
+  "Sri Lanka": 1,
+  "Arabemiraten, Förenade": 1,
+  "Bosnien och Hercegovina": 1,
+  "Rumänien": 1,
+  "Tjeckien": 1,
+  "Kenya": 1,
+  "Seychellerna": 1,
+  "Algeriet": 1,
+  "Isle of Man": 1,
+  "Israel": 1,
+  "Singapore": 1,
+  "Vietnam": 1,
+  "Turkiet": 1,
+  "Estland": 1
+ },
+ "top_occupation_groups": [
+  {
+   "label": "Grundutbildade sjuksköterskor",
+   "ads": 25274
+  },
+  {
+   "label": "Personliga assistenter",
+   "ads": 22330
+  },
+  {
+   "label": "Företagssäljare",
+   "ads": 16833
+  },
+  {
+   "label": "Grundskollärare",
+   "ads": 15784
+  },
+  {
+   "label": "Mjukvaru- och systemutvecklare m.fl.",
+   "ads": 13865
+  },
+  {
+   "label": "Undersköterskor, hemtjänst, hemsjukvård, äldreboende och habilitering",
+   "ads": 10975
+  },
+  {
+   "label": "Städare",
+   "ads": 9519
+  },
+  {
+   "label": "Butikssäljare, fackhandel",
+   "ads": 8960
+  },
+  {
+   "label": "Lager- och terminalpersonal",
+   "ads": 8528
+  },
+  {
+   "label": "Restaurang- och köksbiträden m.fl.",
+   "ads": 7352
+  },
+  {
+   "label": "Socialsekreterare",
+   "ads": 7219
+  },
+  {
+   "label": "Lastbilsförare m.fl.",
+   "ads": 7215
+  },
+  {
+   "label": "Motorfordonsmekaniker och fordonsreparatörer",
+   "ads": 6859
+  },
+  {
+   "label": "Butikssäljare, dagligvaror",
+   "ads": 6807
+  },
+  {
+   "label": "Ingenjörer och tekniker inom maskinteknik",
+   "ads": 6739
+  },
+  {
+   "label": "Kockar och kallskänkor",
+   "ads": 6396
+  },
+  {
+   "label": "Planerare och utredare m.fl.",
+   "ads": 5924
+  },
+  {
+   "label": "Maskinställare och maskinoperatörer, metallarbete",
+   "ads": 5507
+  },
+  {
+   "label": "Kundtjänstpersonal",
+   "ads": 5339
+  },
+  {
+   "label": "Vårdare, boendestödjare",
+   "ads": 5299
+  }
+ ],
+ "top_employers": [
+  {
+   "name": "VÄSTRA GÖTALANDSREGIONEN",
+   "ads": 5797
+  },
+  {
+   "name": "Avaron AB",
+   "ads": 5068
+  },
+  {
+   "name": "REGION SKÅNE",
+   "ads": 4741
+  },
+  {
+   "name": "Almia AB",
+   "ads": 4647
+  },
+  {
+   "name": "GÖTEBORGS KOMMUN",
+   "ads": 4510
+  },
+  {
+   "name": "REGION STOCKHOLM",
+   "ads": 3989
+  },
+  {
+   "name": "Academic Work Sweden AB",
+   "ads": 3428
+  },
+  {
+   "name": "Aura Personal AB",
+   "ads": 2836
+  },
+  {
+   "name": "Stockholms kommun",
+   "ads": 2801
+  },
+  {
+   "name": "Försvarsmakten",
+   "ads": 2787
+  },
+  {
+   "name": "Kraftsam Rekrytering & Bemanning AB",
+   "ads": 2751
+  },
+  {
+   "name": "REGION UPPSALA",
+   "ads": 2618
+  },
+  {
+   "name": "Experis AB",
+   "ads": 2510
+  },
+  {
+   "name": "Hemfrid i Sverige AB",
+   "ads": 2416
+  },
+  {
+   "name": "Viva Bemanning AB",
+   "ads": 2274
+  },
+  {
+   "name": "Vattenfall AB",
+   "ads": 2220
+  },
+  {
+   "name": "YCLA AB",
+   "ads": 2217
+  },
+  {
+   "name": "Allakando AB",
+   "ads": 2205
+  },
+  {
+   "name": "Uniflex AB",
+   "ads": 2029
+  },
+  {
+   "name": "Randstad AB",
+   "ads": 2027
+  }
+ ]
+}
