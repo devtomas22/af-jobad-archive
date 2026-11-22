@@ -1,0 +1,5 @@
+# downloaded and generated data never goes into git
+data/
+dist/
+__pycache__/
+*.pyc

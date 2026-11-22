@@ -1,0 +1,79 @@
+name: quarterly-release
+
+on:
+  schedule:
+    # 06:00 UTC on Jan 1, Apr 1, Jul 1, Oct 1 — right after a quarter closes
+    - cron: "0 6 1 1,4,7,10 *"
+  workflow_dispatch:
+    inputs:
+      quarter:
+        description: "Quarter to cut, e.g. 2026Q3 (default: last completed quarter)"
+        required: false
+      skip_enrichment:
+        description: "Skip the JobAd Enrichments sidecar"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: quarterly-release
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve quarter
+        id: q
+        run: |
+          if [ -n "${{ inputs.quarter }}" ]; then
+            Q="${{ inputs.quarter }}"
+          else
+            Q=$(python3 - <<'PY'
+            import datetime as dt, sys
+            sys.path.insert(0, '.')
+            from af_jobs_archive import default_quarters
+            print(default_quarters(dt.date.today())[-1])
+            PY
+            )
+          fi
+          echo "quarter=$Q" >> "$GITHUB_OUTPUT"
+          echo "cutting $Q"
+
+      - name: Download
+        run: python3 af_jobs_archive.py download --quarters "${{ steps.q.outputs.quarter }}" --workers 8
+
+      - name: Pack
+        run: python3 af_jobs_archive.py pack --quarters "${{ steps.q.outputs.quarter }}"
+
+      - name: Enrich
+        if: ${{ !inputs.skip_enrichment }}
+        run: python3 af_jobs_archive.py enrich --quarters "${{ steps.q.outputs.quarter }}"
+
+      - name: Verify
+        run: python3 af_jobs_archive.py verify --quarters "${{ steps.q.outputs.quarter }}"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: af-jobs-${{ steps.q.outputs.quarter }}
+          path: dist/*
+          retention-days: 7
+
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 af_jobs_archive.py release --quarter "${{ steps.q.outputs.quarter }}"
+
+      - name: Prune rolling window
+        run: python3 af_jobs_archive.py prune
