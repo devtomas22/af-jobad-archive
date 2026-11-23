@@ -75,6 +75,21 @@ python3 tools/classify.py explain --id <ad id>
 
 Details, schema and caveats: [`docs/CLASSIFY.md`](docs/CLASSIFY.md).
 
+`tools/embed_ads.py` embeds a slice of the archive through a local Ollama
+embedding model into resumable `.npy` shards (`embeddings/<model>/part-*.npy`
+plus `.ids.json`, one shard per 500 ads, float32, L2-normalised by the model):
+
+```bash
+python3 tools/embed_ads.py --model granite-embedding:30m \
+    --category occupation_field --label "Data/IT" --shard 500
+```
+
+On this 4-vCPU host that model runs ~0.5 ads/s (30,389 IT ads ≈ 16 h);
+`granite-embedding:278m` is multilingual and correct for Swedish but runs
+0.24 ads/s (≈ 36 h), `embeddinggemma` 0.08 (103 h), `qwen3-embedding:0.6b`
+0.04 (197 h). Re-running the same command resumes after the last finished shard.
+
+
 `--all` is the four most recent **complete** quarters. The current partial
 quarter is not included in `--all`; add it by name to get a data set that really
 reaches today:
