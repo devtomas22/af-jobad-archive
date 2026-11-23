@@ -65,6 +65,39 @@ meta(key, value)                                   -- build time, ad count, quar
 `ad_label` is the reverse index: primary key `(label_id, ad_id)` gives the
 posting list in one range scan; the secondary index on `ad_id` gives `explain`.
 
+## Worked example: how many IT ads?
+
+Three defensible answers, depending on the definition (2026-11-22 cut):
+
+| definition | ads | share |
+|---|---|---|
+| `occupation_field = Data/IT` (official taxonomy) | **30,389** | 5.8 % |
+| + IT-role occupations filed under another field (IT-chef under Chefer, dataanalytiker under Försäljning, IT-jurist under Administration…) | **31,150** | 6.0 % |
+| + ads whose enrichment occupations contain an IT role (text-level signal) | **37,483** | 7.2 % |
+
+Per quarter of the narrow set: 2025Q4 3,855 · 2026Q1 8,817 · 2026Q2 8,383 ·
+2026Q3 6,760 · 2026Q4 2,574. Top groups inside it: Mjukvaru- och
+systemutvecklare 13,865, Systemanalytiker och IT-arkitekter 3,520,
+Systemförvaltare 2,170, Drifttekniker IT 1,995, Supporttekniker IT 1,986.
+Regions: Stockholm 12,043, Västra Götaland 4,819, Skåne 2,610,
+Östergötland 2,531.
+
+```sql
+-- narrow: the field label is the taxonomy's own answer
+SELECT l.ads FROM label l JOIN category c ON c.id = l.category_id
+WHERE c.name = 'occupation_field' AND l.label = 'Data/IT';
+```
+
+```bash
+# one label at a time from the CLI
+python3 tools/classify.py ads --category occupation_field --label "Data/IT" --limit 10
+```
+
+The wider definitions need a join across `occupation` and `occupation_field`
+(both live in `ad_label`); the enrichment-level count needs one streaming pass
+over `dist/ads-*-enrichment.jsonl.gz`, since concepts are only aggregated in the
+index.
+
 ## Caveats
 
 * **Concept ids are the taxonomy's**, `concept_id` in `label` — the same label
