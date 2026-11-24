@@ -89,6 +89,27 @@ On this 4-vCPU host that model runs ~0.5 ads/s (30,389 IT ads ≈ 16 h);
 0.24 ads/s (≈ 36 h), `embeddinggemma` 0.08 (103 h), `qwen3-embedding:0.6b`
 0.04 (197 h). Re-running the same command resumes after the last finished shard.
 
+First completed run, 2026-11-24 — all 30,389 `Data/IT` ads:
+
+```
+model      granite-embedding:30m (384 dims, L2-normalised, max 512 tokens/ad)
+runtime    931.8 min (15.5 h) at 0.54 ads/s, $0 (local CPU, no API fees)
+output     63 shards -> index.npy 30,389 x 384 float32 = 46.7 MB
+           index.ids.json (same row order), manifest.json
+           sha256 73741ab59884e55f00be8e2c8ccfbbafcda3a34b4439e82a751ad9eb023acc83
+```
+
+```bash
+python3 tools/merge_embeddings.py --dir embeddings/granite-embedding_30m
+```
+
+Sanity check on the result: the nearest neighbour of a *DevOps / AI Specialist*
+ad is *Senior Software Engineer AI-Native* (0.897) then *AI Solution Architect*
+(0.883); of a *Fullstackutvecklare inom API-hantering* ad, *Javautvecklare* at
+another employer (0.853) and *Fullstack JavaScript* (0.848). Similarity is dot
+product on the normalised rows.
+
+
 
 `--all` is the four most recent **complete** quarters. The current partial
 quarter is not included in `--all`; add it by name to get a data set that really
