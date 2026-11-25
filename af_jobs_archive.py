@@ -269,9 +269,9 @@ def month_shift(d: dt.datetime, months: int) -> dt.datetime:
 
 def cmd_plan(args) -> None:
     end = parse_date(args.end)
-    cutoff = month_shift(end, -12)
+    cutoff = month_shift(end, -args.months)
     quarters = args.quarters or default_quarters(end)
-    log(f"window: {iso(cutoff)} .. {iso(end)}  (rolling 12 months)")
+    log(f"window: {iso(cutoff)} .. {iso(end)}  (rolling {args.months} month(s))")
     grand = 0
     for q in quarters:
         qs, qe = quarter_bounds(q)
@@ -287,7 +287,7 @@ def cmd_plan(args) -> None:
 
 def cmd_download(args) -> None:
     end = parse_date(args.end)
-    cutoff = month_shift(end, -12)
+    cutoff = month_shift(end, -args.months)
     quarters = args.quarters or default_quarters(end)
     workers = max(1, args.workers)
     for q in quarters:
@@ -333,7 +333,7 @@ def cmd_download(args) -> None:
 
 def cmd_pack(args) -> None:
     end = parse_date(args.end)
-    cutoff = month_shift(end, -12)
+    cutoff = month_shift(end, -args.months)
     quarters = args.quarters or default_quarters(end)
     os.makedirs(DIST_DIR, exist_ok=True)
     for q in quarters:
@@ -561,14 +561,15 @@ def cmd_enrich(args) -> None:
 
 def cmd_prune(args) -> None:
     end = parse_date(args.end)
-    cutoff = month_shift(end, -12)
+    cutoff = month_shift(end, -args.months)
     removed = []
     for d in (RAW_DIR, DIST_DIR):
         if not os.path.isdir(d):
             continue
         for name in sorted(os.listdir(d)):
             q = None
-            for token in name.replace(".jsonl.gz", "").split("-"):
+            stem = name.replace(".jsonl.gz", "").replace(".json", "")
+            for token in stem.split("-"):
                 if len(token) == 6 and token[4] == "Q" and token[:4].isdigit():
                     q = token
             if not q:
@@ -630,7 +631,7 @@ def cmd_verify(args) -> None:
 def cmd_measure(args) -> None:
     """Sample live ads and project storage for a 12-month window."""
     end = parse_date(args.end)
-    start = month_shift(end, -12)
+    start = month_shift(end, -args.months)
     total = window_total(start, end)
     step = dt.timedelta(days=7)
     samples, sizes = [], []
@@ -732,6 +733,9 @@ def main(argv=None) -> int:
                         help="end of the rolling window (default: today)")
         sp.add_argument("--quarters", nargs="*", help="explicit quarters, e.g. 2025Q4 2026Q1")
         sp.add_argument("--all", action="store_true", help="all four quarters of the window")
+        sp.add_argument("--months", type=int,
+                        default=int(os.environ.get("AF_RETENTION_MONTHS", "12")),
+                        help="retention window in months (default 12, or AF_RETENTION_MONTHS)")
         return sp
 
     sp = common(sub.add_parser("plan", help="show window sizes and projected storage"))

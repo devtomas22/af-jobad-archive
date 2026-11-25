@@ -84,6 +84,7 @@ def main(argv=None) -> int:
     p.add_argument("--max-chars", type=int, default=0, help="0 = whole text")
     p.add_argument("--ctx", type=int, default=2048)
     p.add_argument("--limit", type=int, default=0, help="0 = all selected ads")
+    p.add_argument("--since", help="only ads published on/after this date (YYYY-MM-DD)")
     args = p.parse_args(argv[1:] if argv else None)
 
     slug = re.sub(r"[^a-zA-Z0-9._-]+", "_", args.model)
@@ -142,6 +143,8 @@ def main(argv=None) -> int:
                 ad = json.loads(line)
                 aid = str(ad.get("id"))
                 if ids_filter is not None and aid not in ids_filter:
+                    continue
+                if args.since and str(ad.get("publication_date") or "")[:10] < args.since:
                     continue
                 if aid in done:
                     continue

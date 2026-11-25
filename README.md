@@ -142,9 +142,30 @@ at 6-8.
 `download` is resumable: window-level state lives in `data/state/<quarter>.json`,
 so an interrupted run continues where it stopped and never re-fetches a window.
 
-## How the pruning works
+## Retention (operator knob)
 
-`--end` (default: today) defines the window `[end-12 months, end)`.
+The window is `--months N` (or `AF_RETENTION_MONTHS`), default 12. This
+deployment runs a **1-month rolling window**:
+
+```bash
+export AF_RETENTION_MONTHS=1
+python3 af_jobs_archive.py prune --months 1      # delete quarters ending before the cutoff
+python3 af_jobs_archive.py pack  --months 1      # drop rows older than the cutoff inside the live quarter
+python3 tools/prune_embeddings.py --dir embeddings/granite-embedding_30m --since 2026-10-25
+python3 tools/embed_ads.py --model granite-embedding:30m --since 2026-10-25 --shard 500
+```
+
+Pruning is destructive on purpose: the quarterly data older than the window is
+removed from `data/raw` and `dist` (and its manifest), and vectors outside the
+window are dropped from `embeddings/`. Published GitHub releases are unaffected —
+they are releases, not the live window.
+
+`prune_embeddings.py` keeps only vectors whose ad is still in `dist/`, rewrites
+the affected shards, deletes shards that become empty, and rebuilds
+`index.npy` / `manifest.json` with a fresh sha256.
+
+
+`--end` (default: today) defines the window `[end - N months, end)`.
 Quarters that end before the cutoff are deleted outright (`prune`), and `pack`
 drops individual ads published before the cutoff, so the oldest quarter is
 trimmed row-by-row instead of being thrown away whole.
