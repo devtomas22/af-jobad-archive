@@ -1,99 +1,99 @@
 {
- "generated": "2026-11-25T19:31:42",
+ "generated": "2026-11-26T04:06:21",
  "dataset": "af-jobad-archive",
  "license": "Ads © Arbetsförmedlingen via JobTech Development (CC0); code MIT",
  "window": {
-  "start": "2026-10-25T00:00:00",
+  "start": "2026-10-26T00:00:00",
   "end": "2026-11-23T19:50:03"
  },
  "totals": {
-  "ads": 12150,
-  "positions": 20646,
+  "ads": 12020,
+  "positions": 20422,
   "quarters": 1,
-  "raw_json_bytes": 71599820,
-  "ads_gz_bytes": 15834058,
-  "enrichment_gz_bytes": 6904838,
-  "gzip_bytes_total": 22738896,
-  "mean_raw_bytes_per_ad": 5893.0,
-  "employer_names": 2068,
-  "employer_org_numbers": 2044,
-  "ads_with_application_deadline": 12150,
-  "ads_experience_required": 11397,
-  "ads_full_time": 8962
+  "raw_json_bytes": 70974052,
+  "ads_gz_bytes": 15728097,
+  "enrichment_gz_bytes": 6858064,
+  "gzip_bytes_total": 22586161,
+  "mean_raw_bytes_per_ad": 5904.7,
+  "employer_names": 2044,
+  "employer_org_numbers": 2020,
+  "ads_with_application_deadline": 12020,
+  "ads_experience_required": 11274,
+  "ads_full_time": 8894
  },
  "by_quarter": [
   {
    "quarter": "2026Q4",
-   "ads": 12150,
-   "publication_date_from": "2026-10-25T00:00:00",
+   "ads": 12020,
+   "publication_date_from": "2026-10-26T00:00:00",
    "publication_date_to": "2026-11-23T19:50:03",
-   "vacancies": 20646,
-   "raw_json_bytes": 71599820,
-   "ads_gz_bytes": 15834058,
-   "ads_sha256": "371000274b5bdbf569bb566e099daf556e1c66b9bfdf86f4b79e3b824298ba4d",
-   "enrichment_docs": 12150,
-   "enrichment_gz_bytes": 6904838,
-   "enrichment_sha256": "63e68e524df6c5a882f2cf008ed0413c6d197a2a607c0a1a7258d702aac3d729"
+   "vacancies": 20422,
+   "raw_json_bytes": 70974052,
+   "ads_gz_bytes": 15728097,
+   "ads_sha256": "2a65cec453dd499a10dbca096ae64307a0c38f757a979fe8b8824bd3c8999cca",
+   "enrichment_docs": 12020,
+   "enrichment_gz_bytes": 6858064,
+   "enrichment_sha256": "b749490e31ec99801f338f298cc5bd810e0301111ea675b8183e2150f3cbb3eb"
   }
  ],
  "by_month": {
-  "2026-10": 6201,
+  "2026-10": 6071,
   "2026-11": 5949
  },
  "by_source_type": {
-  "VIA_JOBPOSTING": 9296,
-  "VIA_ANNONSERA": 2844,
+  "VIA_JOBPOSTING": 9226,
+  "VIA_ANNONSERA": 2784,
   "VIA_AIS": 10
  },
  "by_occupation_field": {
-  "Hälso- och sjukvård": 1858,
-  "Administration, ekonomi, juridik": 1570,
-  "Försäljning, inköp, marknadsföring": 1332,
-  "Pedagogik": 1084,
-  "Data/IT": 914,
-  "Yrken med social inriktning": 793,
-  "Transport, distribution, lager": 674,
+  "Hälso- och sjukvård": 1845,
+  "Administration, ekonomi, juridik": 1565,
+  "Försäljning, inköp, marknadsföring": 1305,
+  "Pedagogik": 1075,
+  "Data/IT": 911,
+  "Yrken med social inriktning": 789,
+  "Transport, distribution, lager": 668,
   "Yrken med teknisk inriktning": 618,
-  "Chefer och verksamhetsledare": 616,
-  "Industriell tillverkning": 567,
-  "Sanering och renhållning": 498,
-  "Hotell, restaurang, storhushåll": 412,
-  "Installation, drift, underhåll": 405,
-  "Bygg och anläggning": 404,
+  "Chefer och verksamhetsledare": 613,
+  "Industriell tillverkning": 560,
+  "Sanering och renhållning": 493,
+  "Installation, drift, underhåll": 401,
+  "Bygg och anläggning": 397,
+  "Hotell, restaurang, storhushåll": 377,
   "Säkerhet och bevakning": 119,
   "Kultur, media, design": 101,
-  "Naturvetenskap": 89,
+  "Naturvetenskap": 88,
   "Naturbruk": 44,
   "Hantverk": 24,
-  "Kropps- och skönhetsvård": 18,
+  "Kropps- och skönhetsvård": 17,
   "Militära yrken": 10
  },
  "by_region": {
-  "Stockholms län": 3662,
-  "Västra Götalands län": 1961,
-  "Skåne län": 1222,
-  "Östergötlands län": 608,
-  "Jönköpings län": 481,
-  "Uppsala län": 438,
+  "Stockholms län": 3610,
+  "Västra Götalands län": 1948,
+  "Skåne län": 1208,
+  "Östergötlands län": 601,
+  "Jönköpings län": 470,
+  "Uppsala län": 433,
   "Norrbottens län": 360,
-  "Örebro län": 350,
-  "Västerbottens län": 335,
-  "Kronobergs län": 320,
-  "Hallands län": 307,
+  "Örebro län": 344,
+  "Västerbottens län": 331,
+  "Kronobergs län": 319,
+  "Hallands län": 306,
   "Västernorrlands län": 278,
-  "Västmanlands län": 276,
-  "Södermanlands län": 239,
-  "Dalarnas län": 238,
-  "Gävleborgs län": 214,
-  "Värmlands län": 188,
-  "Kalmar län": 182,
+  "Västmanlands län": 274,
+  "Södermanlands län": 237,
+  "Dalarnas län": 236,
+  "Gävleborgs län": 212,
+  "Värmlands län": 186,
+  "Kalmar län": 179,
   "Jämtlands län": 177,
   "Blekinge län": 138,
-  "unknown": 119,
-  "Gotlands län": 57
+  "unknown": 118,
+  "Gotlands län": 55
  },
  "by_country": {
-  "Sverige": 12123,
+  "Sverige": 11993,
   "Spanien": 11,
   "Norge": 8,
   "Finland": 3,
@@ -106,31 +106,31 @@
  "top_occupation_groups": [
   {
    "label": "Grundutbildade sjuksköterskor",
-   "ads": 565
+   "ads": 562
   },
   {
    "label": "Mjukvaru- och systemutvecklare m.fl.",
-   "ads": 418
+   "ads": 415
   },
   {
    "label": "Företagssäljare",
-   "ads": 396
+   "ads": 374
   },
   {
    "label": "Grundskollärare",
-   "ads": 318
+   "ads": 314
   },
   {
    "label": "Personliga assistenter",
-   "ads": 300
+   "ads": 298
   },
   {
    "label": "Städare",
-   "ads": 291
+   "ads": 288
   },
   {
    "label": "Lager- och terminalpersonal",
-   "ads": 271
+   "ads": 269
   },
   {
    "label": "Butikssäljare, fackhandel",
@@ -142,7 +142,7 @@
   },
   {
    "label": "Undersköterskor, hemtjänst, hemsjukvård, äldreboende och habilitering",
-   "ads": 200
+   "ads": 199
   },
   {
    "label": "Ingenjörer och tekniker inom maskinteknik",
@@ -154,7 +154,7 @@
   },
   {
    "label": "Maskinställare och maskinoperatörer, metallarbete",
-   "ads": 169
+   "ads": 165
   },
   {
    "label": "Butikssäljare, dagligvaror",
@@ -165,12 +165,12 @@
    "ads": 158
   },
   {
-   "label": "Motorfordonsmekaniker och fordonsreparatörer",
+   "label": "Lednings- och organisationsutvecklare",
    "ads": 141
   },
   {
-   "label": "Lednings- och organisationsutvecklare",
-   "ads": 141
+   "label": "Motorfordonsmekaniker och fordonsreparatörer",
+   "ads": 140
   },
   {
    "label": "Personal- och HR-specialister",
@@ -178,7 +178,7 @@
   },
   {
    "label": "Planerare och utredare m.fl.",
-   "ads": 138
+   "ads": 137
   },
   {
    "label": "Övrig hemservicepersonal m.fl.",
@@ -191,12 +191,12 @@
    "ads": 300
   },
   {
-   "name": "Ren Labs Stockholm AB",
-   "ads": 251
-  },
-  {
    "name": "VÄSTRA GÖTALANDSREGIONEN",
    "ads": 238
+  },
+  {
+   "name": "Ren Labs Stockholm AB",
+   "ads": 228
   },
   {
    "name": "Aura Personal AB",
@@ -224,7 +224,7 @@
   },
   {
    "name": "Stockholms kommun",
-   "ads": 136
+   "ads": 131
   },
   {
    "name": "Health Connect 365 AB",
@@ -255,12 +255,12 @@
    "ads": 92
   },
   {
-   "name": "NearYou Sverige AB",
+   "name": "VårdIX AB",
    "ads": 85
   },
   {
-   "name": "VårdIX AB",
-   "ads": 85
+   "name": "NearYou Sverige AB",
+   "ads": 79
   },
   {
    "name": "Allakando AB",
