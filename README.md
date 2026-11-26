@@ -109,6 +109,17 @@ ad is *Senior Software Engineer AI-Native* (0.897) then *AI Solution Architect*
 another employer (0.853) and *Fullstack JavaScript* (0.848). Similarity is dot
 product on the normalised rows.
 
+Second run, 2026-11-25/26 — the whole 1-month window, every ad not just IT:
+
+```
+scope      --since 2026-10-25, 12,150 ads (2026-10-25 .. 2026-11-23)
+runtime    373.3 min (6.2 h) at 0.50 ads/s, $0
+output     26 shards -> index.npy 12,150 x 384 float32 = 18.7 MB
+           sha256 83dfe90d598559e7... over the matrix
+coverage   exactly the ads in dist/ (0 missing, 0 extra), all norms 1.0
+```
+
+
 
 
 `--all` is the four most recent **complete** quarters. The current partial
